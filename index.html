@@ -74,6 +74,7 @@
 			align-items: center;
 			justify-content: center;
 			transition: width var(--transition-speed) var(--transition-timing), 
+						height var(--transition-speed) var(--transition-timing), 
 						filter var(--transition-speed) var(--transition-timing);
 			overflow: hidden;
 			z-index: 1;
@@ -521,7 +522,9 @@
 			.split-panel {
 				width: 100% !important;
 				height: 50% !important;
-				filter: none !important;
+				filter: grayscale(15%) brightness(80%);
+				transition: height var(--transition-speed) var(--transition-timing),
+							filter var(--transition-speed) var(--transition-timing);
 			}
 			.panel-cairo {
 				border-right: none;
@@ -564,10 +567,14 @@
 				padding: 10px 25px;
 				font-size: 0.8rem;
 			}
+			
+			/* Central brand ring on mobile/tablet */
 			.brand-center-circle {
 				width: 110px;
 				height: 110px;
 				box-shadow: 0 0 20px rgba(0, 0, 0, 0.6);
+				pointer-events: auto; /* enable click to reset or toggle */
+				transition: all 0.5s ease;
 			}
 			.brand-center-circle img {
 				height: 42px;
@@ -578,6 +585,47 @@
 				padding: 0 10px;
 				line-height: 1.2;
 			}
+
+			/* Active / Expanded states on mobile */
+			.split-container.active-cairo .panel-cairo {
+				height: 65% !important;
+				filter: grayscale(0%) brightness(100%) !important;
+				z-index: 2;
+			}
+			.split-container.active-cairo .panel-sokhna {
+				height: 35% !important;
+				filter: grayscale(35%) brightness(55%) !important;
+				z-index: 1;
+			}
+			.split-container.active-sokhna .panel-sokhna {
+				height: 65% !important;
+				filter: grayscale(0%) brightness(100%) !important;
+				z-index: 2;
+			}
+			.split-container.active-sokhna .panel-cairo {
+				height: 35% !important;
+				filter: grayscale(35%) brightness(55%) !important;
+				z-index: 1;
+			}
+
+			/* Video activation on mobile active panels */
+			.split-panel.active .panel-video {
+				opacity: 1;
+			}
+
+			/* Center circle visual updates when active on mobile */
+			.split-container.active-cairo .brand-center-circle {
+				border-color: var(--gold-primary);
+				box-shadow: 0 0 25px rgba(212, 175, 55, 0.5);
+			}
+			.split-container.active-sokhna .brand-center-circle {
+				border-color: #38bdf8;
+				box-shadow: 0 0 25px rgba(11, 94, 117, 0.6);
+			}
+			.split-container.active-sokhna .brand-center-circle .brand-center-tagline {
+				color: #38bdf8;
+			}
+
 			.landing-header {
 				padding: 15px 20px;
 			}
@@ -599,16 +647,29 @@
 		/* Extra small phones adjustment */
 		@media (max-width: 480px) {
 			.panel-desc {
-				display: none; /* Hide description to fit small mobile screens */
+				display: none; /* Hide description by default to fit small screens */
 			}
 			.features-list {
-				display: none; /* Hide feature tags to fit small mobile screens */
+				display: none; /* Hide features by default to fit small screens */
 			}
 			.panel-title {
 				font-size: 1.6rem;
 			}
 			.brand-center-circle {
-				display: none; /* Hide center circle on very small phones to avoid overlap */
+				display: none; /* Hide center circle on very small screens to avoid overlap */
+			}
+
+			/* Show elements when active/expanded on small mobile */
+			.split-panel.active .panel-desc {
+				display: -webkit-box;
+				-webkit-line-clamp: 2;
+				-webkit-box-orient: vertical;
+				overflow: hidden;
+				animation: fadeInUp 0.5s ease forwards;
+			}
+			.split-panel.active .features-list {
+				display: flex;
+				animation: fadeInUp 0.5s ease forwards;
 			}
 		}
 	</style>
@@ -713,22 +774,109 @@
 		</div>
 	</footer>
 
-	<!-- JavaScript to handle background video play/pause on hover -->
+	<!-- JavaScript to handle background video and interactivity (Hover on Desktop, Tap on Mobile) -->
 	<script>
 		document.addEventListener('DOMContentLoaded', () => {
-			document.querySelectorAll('.split-panel').forEach(panel => {
-				const video = panel.querySelector('.panel-video');
+			const container = document.querySelector('.split-container');
+			const panels = document.querySelectorAll('.split-panel');
+			const centerCircleImg = document.querySelector('.brand-center-circle img');
+			const centerCircleTagline = document.querySelector('.brand-center-circle .brand-center-tagline');
+
+			// Helper to play a video safely
+			const playVideo = (video) => {
 				if (video) {
-					panel.addEventListener('mouseenter', () => {
-						video.play().catch(err => {
-							console.log('Video play interrupted or blocked:', err);
-						});
-					});
-					panel.addEventListener('mouseleave', () => {
-						video.pause();
+					video.play().catch(err => {
+						console.log('Video play interrupted or blocked:', err);
 					});
 				}
+			};
+
+			// Helper to pause a video safely
+			const pauseVideo = (video) => {
+				if (video) {
+					video.pause();
+				}
+			};
+
+			// Mobile active panel toggle handler
+			const setActiveMobilePanel = (activePanel) => {
+				panels.forEach(panel => {
+					const video = panel.querySelector('.panel-video');
+					if (panel === activePanel) {
+						panel.classList.add('active');
+						playVideo(video);
+					} else {
+						panel.classList.remove('active');
+						pauseVideo(video);
+					}
+				});
+
+				// Update container class for mobile styling and change central circle details
+				if (activePanel.classList.contains('panel-cairo')) {
+					container.classList.remove('active-sokhna');
+					container.classList.add('active-cairo');
+					if (centerCircleImg) centerCircleImg.src = "./assets/img/Almassa-logo-golden.jpg";
+				} else if (activePanel.classList.contains('panel-sokhna')) {
+					container.classList.remove('active-cairo');
+					container.classList.add('active-sokhna');
+					if (centerCircleImg) centerCircleImg.src = "./assets/img/Almassa-logo-blue.jpg";
+				}
+			};
+
+			// Reset mobile panels to equal height
+			const resetMobilePanels = () => {
+				panels.forEach(panel => {
+					panel.classList.remove('active');
+					const video = panel.querySelector('.panel-video');
+					pauseVideo(video);
+				});
+				container.classList.remove('active-cairo', 'active-sokhna');
+				if (centerCircleImg) centerCircleImg.src = "./assets/img/Almassa-logo-golden.jpg";
+			};
+
+			// Initialize event listeners
+			panels.forEach(panel => {
+				const video = panel.querySelector('.panel-video');
+
+				// Desktop Hover Interactions (>= 992px)
+				panel.addEventListener('mouseenter', () => {
+					if (window.innerWidth >= 992) {
+						playVideo(video);
+					}
+				});
+
+				panel.addEventListener('mouseleave', () => {
+					if (window.innerWidth >= 992) {
+						pauseVideo(video);
+					}
+				});
+
+				// Mobile/Tablet Tap Interactions (< 992px)
+				panel.addEventListener('click', (e) => {
+					if (window.innerWidth < 992) {
+						// Don't intercept clicks on the CTA buttons
+						if (e.target.closest('.btn-landing')) {
+							return;
+						}
+
+						// If clicked panel is not yet active, activate it
+						if (!panel.classList.contains('active')) {
+							e.preventDefault();
+							setActiveMobilePanel(panel);
+						}
+					}
+				});
 			});
+
+			// If user taps the center circle on mobile, reset the split state to equal 50/50
+			const centerCircle = document.querySelector('.brand-center-circle');
+			if (centerCircle) {
+				centerCircle.addEventListener('click', (e) => {
+					if (window.innerWidth < 992) {
+						resetMobilePanels();
+					}
+				});
+			}
 		});
 	</script>
 
