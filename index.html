@@ -23,7 +23,7 @@
 	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
 
 	<!-- Font Awesome Icons -->
-	<script src="https://kit.fontawesome.com/42d5adcbca.js" crossorigin="anonymous"></script>
+	<!-- <script src="https://kit.fontawesome.com/42d5adcbca.js" crossorigin="anonymous"></script> -->
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
 		integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg=="
 		crossorigin="anonymous" referrerpolicy="no-referrer" />
@@ -90,6 +90,17 @@
 			background-position: center;
 			transition: transform var(--transition-speed) var(--transition-timing);
 			z-index: 1;
+		}
+
+		.panel-video {
+			position: absolute;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			object-fit: cover;
+			opacity: 0;
+			transition: opacity var(--transition-speed) var(--transition-timing);
 		}
 
 		/* Panel Overlays */
@@ -184,6 +195,10 @@
 					rgba(11, 94, 117, 0.45) 0%, 
 					rgba(12, 12, 14, 0.85) 100%
 				);
+			}
+			.panel-cairo:hover .panel-video,
+			.panel-sokhna:hover .panel-video {
+				opacity: 1;
 			}
 
 			/* Push contents slightly on active/inactive states */
@@ -620,7 +635,9 @@
 			
 			<!-- Left Panel: Al Masah Nasr City (Cairo) -->
 			<article class="split-panel panel-cairo" id="panel-cairo-section">
-				<div class="panel-bg"></div>
+				<div class="panel-bg">
+					<video class="panel-video" src="./assets/video/cairo.webm" loop muted playsinline preload="auto" loading="lazy"></video>
+				</div>
 				<div class="panel-overlay"></div>
 				<div class="panel-content">
 					<span class="panel-badge cairo-badge">Palace &amp; Convention Center</span>
@@ -643,7 +660,9 @@
 
 			<!-- Right Panel: Al Masah Ain Sokhna (Resort) -->
 			<article class="split-panel panel-sokhna" id="panel-sokhna-section">
-				<div class="panel-bg"></div>
+				<div class="panel-bg">
+					<video class="panel-video" src="./assets/video/sokhna.webm" loop muted playsinline preload="auto" loading="lazy"></video>
+				</div>
 				<div class="panel-overlay"></div>
 				<div class="panel-content">
 					<span class="panel-badge sokhna-badge">Red Sea Beachfront Oasis</span>
@@ -694,6 +713,42 @@
 		</div>
 	</footer>
 
+	<!-- JavaScript to handle background video play/pause on hover -->
+	<script>
+		document.addEventListener('DOMContentLoaded', () => {
+			document.querySelectorAll('.split-panel').forEach(panel => {
+				const video = panel.querySelector('.panel-video');
+				if (video) {
+					panel.addEventListener('mouseenter', () => {
+						video.play().catch(err => {
+							console.log('Video play interrupted or blocked:', err);
+						});
+					});
+					panel.addEventListener('mouseleave', () => {
+						video.pause();
+					});
+				}
+			});
+		});
+	</script>
+
+<!-- Default Statcounter code for Almasa Hotels
+https://almasahotels.afraym.com/ -->
+<script type="text/javascript">
+var sc_project=13334235; 
+var sc_invisible=1; 
+var sc_security="cd98f50a"; 
+</script>
+<script type="text/javascript"
+src="https://www.statcounter.com/counter/counter.js"
+async></script>
+<noscript><div class="statcounter"><a title="Web Analytics"
+href="https://statcounter.com/" target="_blank"><img
+class="statcounter"
+src="https://c.statcounter.com/13334235/0/cd98f50a/1/"
+alt="Web Analytics"
+referrerPolicy="no-referrer-when-downgrade"></a></div></noscript>
+<!-- End of Statcounter Code -->
 </body>
 
 </html>
